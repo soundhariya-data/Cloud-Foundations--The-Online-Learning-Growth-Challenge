@@ -1,0 +1,177 @@
+
+Case Study: The Online Learning Growth Challenge
+                              
+
+
+
+
+
+
+
+
+## Project Overview
+
+### Case Study: The Online Learning Growth Challenge
+
+A growing education company has launched a digital learning platform where customers can:
+
+- Access courses
+- Watch learning videos and audio
+- Access course materials
+- Complete assessments and exams
+- Submit answers
+- View marks
+- Track their learning progress
+
+The platform performs well during normal periods. However, usage increases significantly during:
+
+- Exam periods
+- New course launches
+- Large corporate training programs
+
+During these high-demand periods, some learners experience delays. At other times, the platform has relatively low activity.
+
+As the company grows, the operations team faces challenges in:
+
+- Handling sudden increases in traffic
+- Maintaining application reliability
+- Understanding the reasons behind service issues
+- Managing application infrastructure
+- Controlling cloud operating costs
+
+Leadership wants the platform to support future growth while maintaining:
+
+- Reliability
+- Scalability
+- Good learner experience
+- Operational efficiency
+- Visibility into system performance
+- Cost efficiency
+
+This project proposes a cloud-based architecture that addresses these requirements using fundamental cloud concepts.
+
+---
+
+# 1. Problem Statement
+
+The existing learning platform must support workloads that can change significantly over time.
+
+For example:
+
+### Normal period
+
+The platform may have a relatively small number of active learners.
+
+### Exam period
+
+A large number of learners may start assessments at approximately the same time.
+
+### New course launch
+
+A newly released course may suddenly receive a large number of requests for course information and learning materials.
+
+### Corporate training program
+
+A company may enroll thousands of learners, resulting in sustained increases in platform activity.
+
+The architecture therefore needs to support changing workloads without permanently running the maximum amount of infrastructure.
+
+---
+
+# 2. Business Requirements
+
+The proposed solution should provide:
+
+1. **Scalability**
+   - Handle increases in learner traffic.
+   - Scale heavily used services independently.
+
+2. **Reliability**
+   - Keep application services available during high demand.
+   - Replace failed application containers.
+
+3. **Operational Efficiency**
+   - Reduce the amount of infrastructure that needs to be manually managed.
+   - Use managed cloud services where appropriate.
+
+4. **Visibility**
+   - Monitor application performance.
+   - Collect logs, metrics, and traces.
+   - Help identify the source of operational problems.
+
+5. **Cost Management**
+   - Avoid maintaining maximum capacity during low-demand periods.
+   - Scale resources according to workload.
+   - Identify unnecessary cloud spending.
+
+6. **Repeatable Infrastructure**
+   - Define infrastructure consistently using Infrastructure as Code.
+
+---
+
+# 3. Proposed Architecture
+
+The solution uses a generic cloud architecture implemented using AWS services.
+
+```text
+                              LEARNER
+                                 |
+                                 v
+                       +-------------------+
+                       |   Load Balancer   |
+                       |    AWS: ALB       |
+                       +---------+---------+
+                                 |
+                                 v
+                  +--------------------------+
+                  | Container Orchestration  |
+                  |       AWS: ECS           |
+                  |                          |
+                  |       Fargate            |
+                  +------------+-------------+
+                               |
+              +----------------+----------------+
+              |                |                |
+              v                v                v
+       +-------------+  +-------------+  +-------------+
+       |   Course    |  | Assessment  |  |  Progress   |
+       |   Service   |  |   Service   |  |   Service   |
+       |  Containers |  |  Containers |  |  Containers |
+       +------+------+  +------+------+  +------+------+
+              |                |                |
+              +----------------+----------------+
+                               |
+                +--------------+--------------+
+                |                             |
+                v                             v
+       +------------------+          +------------------+
+       | Managed Database |          |      Cache       |
+       |    AWS: RDS      |          | AWS: ElastiCache |
+       +------------------+          +------------------+
+                |
+                |
+       Structured application data
+
+
+       +--------------------------------------+
+       |          Object Storage              |
+       |              AWS: S3                 |
+       |                                      |
+       | Videos | Audio | PDFs | Materials   |
+       +--------------------------------------+
+
+Supporting components:
+
+       +------------------+     +------------------+
+       | Container Image  |     |  Observability   |
+       | Registry         |     |  AWS: CloudWatch |
+       | AWS: ECR         |     +------------------+
+       +------------------+
+
+       +------------------+
+       | Infrastructure   |
+       | as Code          |
+       | Terraform        |
+       +------------------+
+
+       Autoscaling + Cost Management / FinOps
