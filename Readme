@@ -1,177 +1,1039 @@
+4. Architecture Components
+4.1 Load Balancer
+Generic Concept
 
-Case Study: The Online Learning Growth Challenge
-                              
+A load balancer receives incoming application requests and distributes them across available application instances or containers.
 
+AWS Example
 
+Application Load Balancer (ALB)
 
+Purpose
 
-
-
-
-
-## Project Overview
-
-### Case Study: The Online Learning Growth Challenge
-
-A growing education company has launched a digital learning platform where customers can:
-
-- Access courses
-- Watch learning videos and audio
-- Access course materials
-- Complete assessments and exams
-- Submit answers
-- View marks
-- Track their learning progress
-
-The platform performs well during normal periods. However, usage increases significantly during:
-
-- Exam periods
-- New course launches
-- Large corporate training programs
-
-During these high-demand periods, some learners experience delays. At other times, the platform has relatively low activity.
-
-As the company grows, the operations team faces challenges in:
-
-- Handling sudden increases in traffic
-- Maintaining application reliability
-- Understanding the reasons behind service issues
-- Managing application infrastructure
-- Controlling cloud operating costs
-
-Leadership wants the platform to support future growth while maintaining:
-
-- Reliability
-- Scalability
-- Good learner experience
-- Operational efficiency
-- Visibility into system performance
-- Cost efficiency
-
-This project proposes a cloud-based architecture that addresses these requirements using fundamental cloud concepts.
-
----
-
-# 1. Problem Statement
-
-The existing learning platform must support workloads that can change significantly over time.
+It prevents all incoming requests from being sent to a single application container.
 
 For example:
 
-### Normal period
+1000 learner requests
+        |
+        v
+   Load Balancer
+        |
+   +----+----+----+
+   |    |    |    |
+   v    v    v    v
+  C1   C2   C3   C4
 
-The platform may have a relatively small number of active learners.
+The load balancer can route requests to the appropriate application service.
 
-### Exam period
+5. Containerized Application Services
 
-A large number of learners may start assessments at approximately the same time.
+The application is divided into three main services:
 
-### New course launch
+Course Service
+Assessment Service
+Progress Service
 
-A newly released course may suddenly receive a large number of requests for course information and learning materials.
+Each service runs inside containers.
 
-### Corporate training program
+5.1 Course Service
 
-A company may enroll thousands of learners, resulting in sustained increases in platform activity.
+The Course Service handles course-related operations.
 
-The architecture therefore needs to support changing workloads without permanently running the maximum amount of infrastructure.
+Examples:
 
----
+Display available courses
+Display course details
+Display lessons
+Retrieve course information
+Provide references to learning materials
 
-# 2. Business Requirements
+Example flow:
 
-The proposed solution should provide:
+Learner
+   |
+   v
+Load Balancer
+   |
+   v
+Course Service Container
+   |
+   +----> Cache
+   |
+   +----> Database
+5.2 Assessment Service
 
-1. **Scalability**
-   - Handle increases in learner traffic.
-   - Scale heavily used services independently.
+The Assessment Service handles examinations and assessments.
 
-2. **Reliability**
-   - Keep application services available during high demand.
-   - Replace failed application containers.
+Examples:
 
-3. **Operational Efficiency**
-   - Reduce the amount of infrastructure that needs to be manually managed.
-   - Use managed cloud services where appropriate.
+Start an assessment
+Retrieve questions
+Submit answers
+Evaluate submissions
+Store assessment results
+Display marks
 
-4. **Visibility**
-   - Monitor application performance.
-   - Collect logs, metrics, and traces.
-   - Help identify the source of operational problems.
+Example:
 
-5. **Cost Management**
-   - Avoid maintaining maximum capacity during low-demand periods.
-   - Scale resources according to workload.
-   - Identify unnecessary cloud spending.
+Learner
+   |
+   v
+Assessment Service
+   |
+   v
+Questions
+   |
+   v
+Learner submits answers
+   |
+   v
+Assessment Service
+   |
+   v
+Store result
 
-6. **Repeatable Infrastructure**
-   - Define infrastructure consistently using Infrastructure as Code.
+The Assessment Service is expected to experience particularly high traffic during examination periods.
 
----
+Therefore, it is an important candidate for autoscaling.
 
-# 3. Proposed Architecture
+5.3 Progress Service
 
-The solution uses a generic cloud architecture implemented using AWS services.
+The Progress Service tracks learner activity and progress.
 
-```text
-                              LEARNER
-                                 |
-                                 v
-                       +-------------------+
-                       |   Load Balancer   |
-                       |    AWS: ALB       |
-                       +---------+---------+
-                                 |
-                                 v
-                  +--------------------------+
-                  | Container Orchestration  |
-                  |       AWS: ECS           |
-                  |                          |
-                  |       Fargate            |
-                  +------------+-------------+
-                               |
-              +----------------+----------------+
-              |                |                |
-              v                v                v
-       +-------------+  +-------------+  +-------------+
-       |   Course    |  | Assessment  |  |  Progress   |
-       |   Service   |  |   Service   |  |   Service   |
-       |  Containers |  |  Containers |  |  Containers |
-       +------+------+  +------+------+  +------+------+
-              |                |                |
-              +----------------+----------------+
-                               |
-                +--------------+--------------+
-                |                             |
-                v                             v
-       +------------------+          +------------------+
-       | Managed Database |          |      Cache       |
-       |    AWS: RDS      |          | AWS: ElastiCache |
-       +------------------+          +------------------+
-                |
-                |
-       Structured application data
+Examples:
+
+Completed lessons
+Incomplete lessons
+Completed assessments
+Assessment scores
+Overall learning progress
+
+Example:
+
+Learner completes lesson
+          |
+          v
+    Progress Service
+          |
+          v
+     Database
+          |
+          v
+Progress updated
+6. Containers
+
+A container packages an application together with the runtime and libraries required to run it.
+
+For example:
+
++--------------------------------+
+|       Course Service           |
+|                                |
+| Application Code               |
+| Runtime                        |
+| Required Libraries             |
+| Configuration                  |
++--------------------------------+
+
+The container does not contain the application's main database or large learning files.
+
+Those are external cloud resources.
+
+Container
+    |
+    +------> Managed Database
+    |
+    +------> Cache
+    |
+    +------> Object Storage
+AWS Examples
+Container orchestration: Amazon ECS
+Container compute: AWS Fargate
+Container image registry: Amazon ECR
+7. Container Orchestration
+
+Container orchestration manages the application's containers.
+
+AWS Example
+
+Amazon ECS
+
+ECS can manage multiple instances of each application service.
+
+Example:
+
+ECS
 
 
-       +--------------------------------------+
-       |          Object Storage              |
-       |              AWS: S3                 |
-       |                                      |
-       | Videos | Audio | PDFs | Materials   |
-       +--------------------------------------+
+Course Service
+    |
+    +-- Container 1
+    +-- Container 2
 
-Supporting components:
 
-       +------------------+     +------------------+
-       | Container Image  |     |  Observability   |
-       | Registry         |     |  AWS: CloudWatch |
-       | AWS: ECR         |     +------------------+
-       +------------------+
+Assessment Service
+    |
+    +-- Container 1
+    +-- Container 2
 
-       +------------------+
-       | Infrastructure   |
-       | as Code          |
-       | Terraform        |
-       +------------------+
 
-       Autoscaling + Cost Management / FinOps
+Progress Service
+    |
+    +-- Container 1
+    +-- Container 2
+
+If a container fails, the orchestration platform can help maintain the desired number of running containers.
+
+8. Container Compute
+
+Containers require computing resources such as:
+
+CPU
+Memory
+Networking
+AWS Example
+
+AWS Fargate
+
+Fargate provides the compute capacity required to run the containers without requiring the team to manage the underlying servers directly.
+
+The relationship is:
+
+ECR
+ |
+ | Container Image
+ v
+ECS
+ |
+ | Manages containers
+ v
+Fargate
+ |
+ | Provides compute
+ v
+Running Containers
+9. Managed Database
+
+The platform needs structured application data.
+
+Examples include:
+
+Course information
+Lesson information
+Assessment information
+Questions
+Student submissions
+Marks
+Learning progress
+Generic Concept
+
+Managed relational database.
+
+AWS Example
+
+Amazon RDS
+
+The project uses one managed relational database rather than creating separate databases for every service.
+
+Conceptually:
+
+                 Managed Database
+                       |
+       +---------------+----------------+
+       |               |                |
+       v               v                v
+    Courses       Assessments       Progress
+    Questions     Submissions       Marks
+
+The database remains the primary source of truth for structured application data.
+
+10. Object Storage
+
+Learning platforms contain large files such as:
+
+Videos
+Audio
+PDFs
+Images
+Course materials
+
+These should be stored separately from the relational database.
+
+Generic Concept
+
+Object storage.
+
+AWS Example
+
+Amazon S3
+
+S3
+ |
+ +-- Videos
+ |
+ +-- Audio
+ |
+ +-- PDFs
+ |
+ +-- Course Materials
+
+The database can store information about the material, while S3 stores the actual files.
+
+For example:
+
+Database:
+
+
+Lesson 1
+Video = lesson1.mp4
+
+
+S3:
+
+
+lesson1.mp4
+11. Cache
+
+A cache stores frequently accessed information temporarily so that it can be retrieved faster.
+
+AWS Example
+
+Amazon ElastiCache
+
+Example:
+
+Course Service
+      |
+      v
+    Cache
+      |
+      +---- Data available
+      |        |
+      |        v
+      |      Return data
+      |
+      +---- Data unavailable
+               |
+               v
+            Database
+
+The cache reduces repeated database reads for frequently requested information.
+
+The database remains the source of truth.
+
+12. Autoscaling
+
+Autoscaling adjusts application capacity according to workload.
+
+Normal period
+Assessment Service
+
+
+Container 1
+Container 2
+Exam period
+
+Traffic increases significantly:
+
+Learner traffic
+      |
+      v
+Workload increases
+      |
+      v
+Autoscaling
+      |
+      v
+More containers
+
+For example:
+
+2 containers
+      |
+      v
+10 containers
+
+After the exam period:
+
+Traffic decreases
+      |
+      v
+Fewer containers required
+      |
+      v
+10 containers
+      |
+      v
+2 containers
+AWS Example
+
+ECS Service Auto Scaling
+
+The important benefit is that capacity can follow demand instead of remaining permanently at peak capacity.
+
+13. Observability
+
+Observability provides visibility into the behavior and health of the system.
+
+It uses three important types of information:
+
+Logs
+
+Records of events that happened.
+
+Example:
+
+Assessment submitted successfully
+Database connection failed
+User authentication failed
+Metrics
+
+Numerical measurements.
+
+Examples:
+
+CPU usage
+Memory usage
+Request count
+Error rate
+Response time
+Traces
+
+Follow an individual request through multiple components.
+
+Example:
+
+Learner
+   |
+   v
+Load Balancer
+   |
+   v
+Assessment Service
+   |
+   v
+Cache
+   |
+   v
+Database
+
+A trace can help identify which part of the request is taking the most time.
+
+AWS Example
+
+Amazon CloudWatch
+
+CloudWatch provides monitoring capabilities for the AWS environment and application workloads.
+
+14. Infrastructure as Code
+
+Infrastructure as Code means defining infrastructure using code rather than manually configuring every resource.
+
+Tool Example
+
+Terraform
+
+Terraform can describe resources such as:
+
+Load Balancer
+Containers
+Database
+Storage
+Networking
+Monitoring
+
+Conceptually:
+
+Terraform
+    |
+    v
+Infrastructure Definition
+    |
+    v
+AWS
+    |
+    +-- Load Balancer
+    +-- ECS
+    +-- RDS
+    +-- S3
+    +-- Monitoring
+Benefits
+Repeatability
+Consistency
+Automation
+Easier infrastructure management
+Reduced manual configuration
+15. Cost Management and FinOps
+
+Cloud resources have costs associated with their usage.
+
+The platform therefore needs to manage cloud spending.
+
+Basic practices
+Scale resources according to demand
+Avoid unused resources
+Monitor resource usage
+Choose appropriate resource sizes
+Review storage usage
+Monitor cloud spending
+Remove unnecessary resources
+Example
+
+During normal periods:
+
+Low demand
+   |
+   v
+Fewer containers
+   |
+   v
+Lower compute usage
+
+During exams:
+
+High demand
+   |
+   v
+More containers
+   |
+   v
+Higher capacity
+   |
+   v
+Better learner experience
+
+After exams:
+
+Demand decreases
+   |
+   v
+Scale down
+   |
+   v
+Reduce unnecessary cost
+AWS Examples
+AWS Cost Explorer
+AWS Budgets
+AWS cost and usage information
+
+FinOps balances:
+
+Cost
+ +
+Performance
+ +
+Reliability
+16. Scenario 1 — Normal Course Access
+
+A learner opens a course.
+
+Learner
+   |
+   v
+Load Balancer
+   |
+   v
+Course Service Container
+   |
+   v
+Cache
+
+If the course information is already cached:
+
+Cache
+  |
+  v
+Course information
+  |
+  v
+Learner
+
+If it is not cached:
+
+Cache
+  |
+  | Cache miss
+  v
+Database
+  |
+  v
+Course information
+
+The Course Service then returns the information to the learner.
+
+17. Scenario 2 — Learner Watches a Video
+
+The learner selects a lesson video.
+
+Learner
+   |
+   v
+Course Service
+   |
+   v
+Object Storage
+   |
+   v
+Video
+
+The course information is maintained in the database, while the large video file is stored in object storage.
+
+Separation
+Database
+    |
+    +-- Course information
+    +-- Lesson information
+
+
+Object Storage
+    |
+    +-- Video
+    +-- Audio
+    +-- PDF
+18. Scenario 3 — Learner Takes an Exam
+
+The learner starts an assessment.
+
+Learner
+   |
+   v
+Load Balancer
+   |
+   v
+Assessment Service
+   |
+   v
+Database
+   |
+   v
+Assessment Questions
+
+The learner submits answers:
+
+Learner
+   |
+   v
+Assessment Service
+   |
+   v
+Evaluate submission
+   |
+   v
+Database
+   |
+   v
+Result / Marks
+
+The Progress Service can then record that the assessment has been completed.
+
+Assessment completed
+        |
+        v
+Progress Service
+        |
+        v
+Database
+19. Scenario 4 — Exam Period
+
+This is the most important scalability scenario.
+
+Suppose normally:
+
+Assessment Service
+2 containers
+
+During an exam:
+
+Thousands of learners
+        |
+        v
+Request volume increases
+        |
+        v
+Assessment Service workload increases
+        |
+        v
+Autoscaling
+        |
+        v
+More containers
+
+For example:
+
+2 containers
+     ↓
+4 containers
+     ↓
+8 containers
+     ↓
+10 containers
+
+The load balancer distributes incoming requests across the available containers.
+
+After the exam:
+
+Traffic decreases
+        |
+        v
+Autoscaling
+        |
+        v
+Containers decrease
+
+This improves both performance and cost efficiency.
+
+20. Scenario 5 — New Course Launch
+
+A new course is launched.
+
+Thousands of learners may request the course at the same time.
+
+Large number of learners
+          |
+          v
+    Load Balancer
+          |
+          v
+    Course Service
+          |
+          v
+       Cache
+
+Frequently requested course information can be served from the cache rather than repeatedly querying the database.
+
+If application workload increases significantly, the Course Service can also scale its containers.
+
+This prevents a sudden increase in traffic from unnecessarily overwhelming one application instance or repeatedly hitting the database for the same information.
+
+21. Scenario 6 — Service Failure
+
+Suppose one Course Service container fails.
+
+Course Service
+
+
+Container 1  ✓
+Container 2  ✗
+Container 3  ✓
+
+The orchestration system can maintain the desired number of running containers by replacing the failed container.
+
+The load balancer can continue routing traffic to available healthy containers.
+
+             Load Balancer
+              /          \
+             v            v
+        Container 1   Container 3
+             ✓            ✓
+
+This supports application availability.
+
+22. Scenario 7 — Application Becomes Slow
+
+Suppose learners report:
+
+"The assessment is taking too long."
+
+The operations team investigates using observability.
+
+CloudWatch
+    |
+    +-- Logs
+    +-- Metrics
+    +-- Traces
+
+They might discover:
+
+Assessment Service
+       |
+       v
+Database
+       |
+       v
+High database usage
+
+Or they might discover:
+
+Assessment Service
+       |
+       v
+High CPU usage
+
+The important point is that observability helps the team identify where the problem is instead of guessing.
+
+23. Scenario 8 — Low Activity and Cost Control
+
+Suppose the platform has very little traffic during a particular period.
+
+Without scaling:
+
+Maximum capacity
+       |
+       v
+Resources remain running
+       |
+       v
+Paying for unused capacity
+
+With autoscaling:
+
+Low demand
+    |
+    v
+Reduce application capacity
+    |
+    v
+Lower resource usage
+
+FinOps then helps the team review:
+
+Resource utilization
+Cloud spending
+Storage usage
+Unused resources
+Cost trends
+
+The objective is to avoid unnecessary spending without compromising reliability.
+
+24. Scenario 9 — Infrastructure Reproduction
+
+Suppose the company needs another environment.
+
+For example:
+
+Development
+Testing
+Production
+
+Instead of manually creating every resource again:
+
+Terraform
+    |
+    v
+Infrastructure definition
+    |
+    v
+Create consistent environment
+
+This demonstrates the purpose of Infrastructure as Code:
+
+Infrastructure becomes repeatable, consistent, and easier to manage.
+
+25. End-to-End Architecture Flow
+
+The overall learner experience can be summarized as:
+
+                         LEARNER
+                            |
+                            v
+                    +---------------+
+                    | Load Balancer  |
+                    +-------+-------+
+                            |
+                            v
+                  +-------------------+
+                  | Container Platform|
+                  | ECS + Fargate      |
+                  +---------+---------+
+                            |
+          +-----------------+-----------------+
+          |                 |                 |
+          v                 v                 v
+       Course          Assessment         Progress
+       Service           Service           Service
+          |                 |                 |
+          +-----------------+-----------------+
+                            |
+                 +----------+----------+
+                 |                     |
+                 v                     v
+           Managed Database          Cache
+                RDS              ElastiCache
+                 |
+                 |
+                 v
+           Structured Data
+
+
+
+
+             Object Storage
+                  S3
+                  |
+          +-------+-------+
+          |       |       |
+        Videos  Audio    PDFs
+
+Supporting the architecture:
+
+ECR
+ |
+ +-- Stores container images
+
+
+CloudWatch
+ |
+ +-- Logs
+ +-- Metrics
+ +-- Traces
+
+
+Terraform
+ |
+ +-- Infrastructure as Code
+
+
+Autoscaling
+ |
+ +-- Adjusts application capacity
+
+
+FinOps
+ |
+ +-- Controls and optimizes cloud spending
+26. Why This Architecture Meets the Business Requirements
+Business Need	Solution
+Handle high traffic	Containers + autoscaling
+Distribute traffic	Load balancer
+Run applications consistently	Containers
+Manage containers	Container orchestration
+Avoid server management	Managed container compute
+Store structured data	Managed relational database
+Store videos and files	Object storage
+Reduce repeated database reads	Cache
+Detect application problems	Observability
+Reproduce infrastructure	Infrastructure as Code
+Control cloud spending	Autoscaling + FinOps
+Support future growth	Scalable cloud architecture
+27. Cloud Foundations Concepts Demonstrated
+Infrastructure as Code
+
+Concept demonstrated: Terraform defines and manages the cloud infrastructure.
+
+AWS implementation: AWS resources managed through Terraform.
+
+Containers and Orchestration
+
+Concept demonstrated: Applications are packaged into containers and managed by a container orchestration platform.
+
+AWS implementation:
+
+Containers → ECS → Fargate
+Managed Cloud Services
+
+Concept demonstrated: The company uses managed cloud services instead of managing all infrastructure itself.
+
+Examples:
+
+Managed Database → RDS
+Object Storage → S3
+Container Platform → ECS
+Container Compute → Fargate
+Monitoring → CloudWatch
+Autoscaling
+
+Concept demonstrated: Application capacity increases during high demand and decreases when demand falls.
+
+AWS implementation: ECS Service Auto Scaling.
+
+Observability
+
+Concept demonstrated: Logs, metrics, and traces provide visibility into application behavior.
+
+AWS implementation: CloudWatch and related AWS monitoring capabilities.
+
+FinOps
+
+Concept demonstrated: Cloud resources and spending are monitored and optimized according to business requirements.
+
+AWS examples: Cost Explorer and AWS Budgets.
+
+28. Key Design Decisions
+One relational database
+
+The architecture uses one managed relational database for the application's structured data.
+
+This keeps the initial architecture simple and avoids unnecessary database complexity for a small learning platform.
+
+Object storage for large files
+
+Videos, audio, PDFs, and other large files are separated from transactional database data and stored in object storage.
+
+Independent application scaling
+
+Course, Assessment, and Progress Services are containerized separately.
+
+Therefore, each service can scale according to its workload.
+
+For example:
+
+Course Service       → 3 containers
+Assessment Service   → 10 containers
+Progress Service     → 3 containers
+
+during an examination period.
+
+Managed services
+
+Managed cloud services are preferred where appropriate to reduce infrastructure management responsibilities.
+
+Autoscaling
+
+Capacity is adjusted according to workload rather than permanently maintaining peak capacity.
+
+Observability
+
+Monitoring is included so operational teams can understand application behavior and diagnose problems.
+
+Infrastructure as Code
+
+Terraform provides a repeatable way to define and manage infrastructure.
+
+29. Conclusion
+
+The proposed cloud architecture addresses the main challenges faced by the growing online learning platform.
+
+The use of containers and container orchestration allows application services to be packaged consistently and managed independently.
+
+Autoscaling allows the platform to increase capacity during exam periods, course launches, and corporate training programs while reducing capacity when demand falls.
+
+Managed cloud services reduce the amount of infrastructure that the operations team needs to manage directly. A managed relational database stores structured application data, while object storage handles large learning files.
+
+Caching helps reduce repeated database access for frequently requested information.
+
+Observability provides logs, metrics, and traces that help the operations team understand application behavior and diagnose issues.
+
+Infrastructure as Code makes the infrastructure repeatable and easier to manage.
+
+Finally, FinOps and cost optimization practices help the company control cloud spending while maintaining the reliability and performance required by learners.
+
+Overall, the architecture provides a balance between:
+
+Scalability
+     +
+Reliability
+     +
+Operational Efficiency
+     +
+Visibility
+     +
+Cost Management
+
+This allows the learning platform to support future growth while maintaining a reliable learner experience.
+
+
+
+### One important point for your GitHub README
+
+
+Keep the **generic concept first and AWS implementation second**, exactly as above. That makes it clear that you understand *Cloud Foundations*, rather than simply memorizing AWS product names.
+
+
+Your frozen stack is:
+
+
+**Load Balancer → Containers → Container Orchestration/Compute → Services → Cache + One Managed SQL Database + Object Storage → Autoscaling + Observability + IaC + FinOps**
+
+
+with AWS examples:
