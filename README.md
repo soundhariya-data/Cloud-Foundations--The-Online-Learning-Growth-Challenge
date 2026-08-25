@@ -23,38 +23,35 @@ The goal of this project is to propose a cloud-based solution that supports:
 * Cost management
 
 ---
+## 2. Problem Statement
 
-## 2. Case Study
+The existing learning platform must support workloads that can change significantly over time.
 
-The company is experiencing the following challenges:
+For example:
 
-### High Traffic
+### Normal period
 
-During exam periods, new course launches, and corporate training programs, many users access the platform simultaneously.
+The platform may have a relatively small number of active learners.
 
-This can cause:
+### Exam period
 
+A large number of learners may start assessments at approximately the same time.
 * Slow application responses
 * Increased server load
 * Delayed assessments
 * Poor learner experience
 
-### Low Traffic
+### New course launch
 
-At other times, the platform has relatively low activity.
+A newly released course may suddenly receive a large number of requests for course information and learning materials.
 
-If the company maintains the same amount of infrastructure during low-demand periods, resources may remain unused while still generating costs.
+### Corporate training program
 
-### Operational Challenges
+A company may enroll thousands of learners, resulting in sustained increases in platform activity.
 
-The operations team has difficulty:
+The architecture therefore needs to support changing workloads without permanently running the maximum amount of infrastructure.
 
-* Managing infrastructure
-* Identifying the causes of service issues
-* Maintaining consistent environments
-* Controlling cloud costs
 
-Therefore, the platform needs an architecture that can automatically adapt to changing demand while remaining reliable and cost-efficient.
 
 ---
 
