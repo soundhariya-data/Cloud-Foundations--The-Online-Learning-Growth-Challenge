@@ -499,124 +499,219 @@ Regularly identify and remove:
 Set spending budgets and alerts to identify unexpected increases in cloud costs.
 
 ---
+## Scenario 1: Normal Course Access
 
-
-# 18. Complete Exam-Period Scenario
-
-Consider a major online examination.
-
-## Step 1 – Normal Traffic
+When a learner opens a course, the request goes through the load balancer to a Course Service container.
 
 ```text
-500 users
+Learner
    |
    v
-3 application instances
+Load Balancer
+   |
+   v
+Course Service Container
+   |
+   v
+Cache
 ```
 
-The platform is operating normally.
+### Cache hit
 
-## Step 2 – Exam Starts
-
-Thousands of learners begin accessing the platform.
+If the course information is already in the cache:
 
 ```text
-Traffic increases
-       |
-       v
-Application load increases
+Course Service
+      |
+      v
+   Cache
+      |
+      v
+Course information
+      |
+      v
+   Learner
 ```
 
-## Step 3 – Autoscaling
+The Course Service returns the cached information quickly without querying the database.
 
-Autoscaling detects increased demand and increases the number of application instances.
+### Cache miss
+
+If the information is not available in the cache:
 
 ```text
-3 instances
-     |
-     v
-5 instances
-     |
-     v
-8 instances
+Course Service
+      |
+      v
+Cache miss
+      |
+      v
+Database
+      |
+      v
+Course information
 ```
 
-## Step 4 – Load Balancing
+The Course Service retrieves the data from the database, may place a copy in the cache, and returns it to the learner.
 
-The load balancer distributes incoming requests across the available application instances.
+## Scenario 2: Learner Watches a Video
+
+When a learner selects a lesson video, the application uses the course information to locate the file in object storage.
 
 ```text
-                 Load Balancer
-                /      |      \
-               v       v       v
-            App 1   App 2   App 3
-               \       |       /
-                \      |      /
-                 Additional
-                  Instances
+Learner
+   |
+   v
+Course Service
+   |
+   v
+Object Storage
+   |
+   v
+Video
 ```
 
-## Step 5 – Observability
-
-The platform collects:
+The database stores structured information such as:
 
 ```text
-Logs
-Metrics
-Traces
+Course information
+Lesson information
+Video name
+File location
+Access details
 ```
 
-Engineers can monitor:
-
-* Request latency
-* Error rates
-* CPU usage
-* Memory usage
-* Database performance
-
-## Step 6 – Troubleshooting
-
-Suppose assessment requests become slow.
-
-Observability data can help identify the affected service or database operation.
-
-For example:
+Object storage contains the large learning materials:
 
 ```text
-Slow Assessment Request
-          |
-          v
-       Trace
-          |
-          v
+Videos
+Audio files
+PDFs
+Images
+Datasets
+```
+
+Keeping metadata in the database and large files in object storage improves organization and scalability.
+
+## Scenario 3: Learner Takes an Exam
+
+When the learner starts an assessment:
+
+```text
+Learner
+   |
+   v
+Load Balancer
+   |
+   v
 Assessment Service
-          |
-          v
-Slow Database Query
-          |
-          v
-Identify Bottleneck
+   |
+   v
+Database
+   |
+   v
+Assessment Questions
 ```
 
-## Step 7 – Traffic Decreases
-
-After the examination, user activity decreases.
-
-Autoscaling reduces the number of application instances.
+When the learner submits answers:
 
 ```text
-8 instances
-     |
-     v
-5 instances
-     |
-     v
-3 instances
+Learner
+   |
+   v
+Assessment Service
+   |
+   v
+Evaluate submission
+   |
+   v
+Database
+   |
+   v
+Result and Marks
 ```
 
-This avoids paying for unnecessary capacity.
+The Assessment Service validates the answers, calculates the score, stores the result, and returns the result to the learner.
 
----
+The service can then notify the Progress Service:
+
+```text
+Assessment Completed
+          |
+          v
+Progress Service
+          |
+          v
+Database
+```
+
+The Progress Service updates the learner's completion status or course percentage.
+
+## Scenario 4: Exam-Period Scalability
+
+During normal activity, the Assessment Service may run two containers.
+
+```text
+Normal activity: 2 containers
+```
+
+During an exam, thousands of learners may submit requests at the same time:
+
+```text
+Thousands of learners
+          |
+          v
+Request volume increases
+          |
+          v
+Assessment workload increases
+          |
+          v
+Auto scaling
+          |
+          v
+More containers
+```
+
+Example:
+
+```text
+2 containers
+     |
+     v
+4 containers
+     |
+     v
+8 containers
+     |
+     v
+10 containers
+```
+
+The load balancer distributes requests across healthy containers. After the exam, traffic decreases and auto scaling can reduce the number of containers. This improves performance during peak demand and reduces unnecessary cost during quiet periods.
+
+## Scenario 5: New Course Launch
+
+When a new course becomes popular, many learners may request the same course information.
+
+```text
+Many learners
+      |
+      v
+Load Balancer
+      |
+      v
+Course Service
+      |
+      v
+Cache
+```
+
+Frequently requested information can be served from the cache instead of repeatedly querying the database. If application workload increases significantly, the Course Service can scale to more containers.
+
+This protects the database and prevents one application instance from becoming overloaded.
+
+
 
 # 19. Mapping Problems to Solutions
 
