@@ -59,111 +59,15 @@ The architecture therefore needs to support changing workloads without permanent
 
 ---
 
-# 3. Business Requirements
 
-The proposed solution focuses on five main requirements.
 
-| Requirement | Goal |
-|---|---|
-| Reliability | Keep the platform available and reduce failures |
-| Scalability | Handle increases and decreases in traffic |
-| Operational Efficiency | Reduce manual infrastructure management |
-| Observability | Understand system health and identify problems |
-| Cost Management | Use cloud resources efficiently and control spending |
+
+# 3. Proposed Architecture
+
 
 ---
 
-# 4. Proposed Solution
-
-We propose a scalable cloud architecture using:
-
-* Load balancing
-* Containerized application services
-* Autoscaling
-* Container orchestration
-* Managed cloud services
-* Infrastructure as Code
-* Observability
-* FinOps practices
-
-The main idea is to allow the platform to automatically respond to changing demand while giving the engineering team visibility into system behavior and cloud costs.
-
-The architecture uses **generic cloud services**, so the same design can be implemented using different cloud providers.
-
----
-
-# 5. Proposed Architecture
-
-```text
-                              LEARNERS
-                                  |
-                                  v
-                         +----------------+
-                         | Load Balancer  |
-                         +-------+--------+
-                                 |
-                                 v
-                    +--------------------------+
-                    | Container Platform       |
-                    | + Container Orchestration|
-                    +------------+-------------+
-                                 |
-                  +--------------+--------------+
-                  |              |              |
-                  v              v              v
-             +---------+    +---------+    +---------+
-             | Course  |    |Assessment|    |Progress |
-             | Service |    | Service |    | Service |
-             +----+----+    +----+----+    +----+----+
-                  |              |              |
-                  +--------------+--------------+
-                                 |
-                    +------------+-------------+
-                    |                          |
-                    v                          v
-             +-------------+            +-------------+
-             |    Cache    |            |   Managed   |
-             |             |            |  Relational |
-             +-------------+            |   Database  |
-                                        +-------------+
-                                               |
-                                               v
-                                      Structured Data
-
-                         +----------------------+
-                         |    Object Storage     |
-                         | Videos / PDFs / Audio |
-                         | Images / Materials   |
-                         +----------------------+
-
-                         +----------------------+
-                         |     Autoscaling       |
-                         | Add/remove instances  |
-                         | based on demand       |
-                         +----------------------+
-
-                         +----------------------+
-                         |    Observability      |
-                         | Logs + Metrics +      |
-                         | Traces                |
-                         +----------------------+
-
-                         +----------------------+
-                         |        FinOps         |
-                         | Cost monitoring +     |
-                         | Budgets + Right-size |
-                         +----------------------+
-
-                         +----------------------+
-                         | Infrastructure as     |
-                         | Code                 |
-                         | Repeatable deployment|
-                         +----------------------+
-```
-
----
-
-# 6. Load Balancer
+# 4. Load Balancer
 
 ## Problem
 
@@ -199,7 +103,7 @@ Load balancing helps:
 
 ---
 
-# 7. Containers
+# 5. Containers
 
 ## Definition
 
@@ -246,7 +150,7 @@ Containers provide:
 
 ---
 
-# 8. Container Orchestration
+# 6. Container Orchestration
 
 When the number of containers increases, manually managing them becomes difficult.
 
@@ -266,7 +170,7 @@ The architecture does not depend on a specific orchestration provider.
 
 ---
 
-# 9. Autoscaling
+# 7. Autoscaling
 
 ## Definition
 
@@ -322,7 +226,7 @@ The key principle is:
 
 ---
 
-# 10. Managed Cloud Services
+# 8. Managed Cloud Services
 
 A managed cloud service allows the cloud provider to handle much of the underlying infrastructure management.
 
@@ -359,7 +263,7 @@ This allows the team to focus more on the learning platform itself rather than m
 
 ---
 
-# 11. Object Storage
+# 9. Object Storage
 
 Large files such as videos, audio, PDFs, images, and course materials are better suited to object storage than a relational database.
 
@@ -378,22 +282,6 @@ Object Storage
 
 The relational database can store information about the files, while object storage keeps the actual large files.
 
-For example:
-
-```text
-Database
-   |
-   +---- File name
-   +---- File type
-   +---- File location
-   +---- Course information
-
-Object Storage
-   |
-   +---- Actual video
-   +---- Actual PDF
-   +---- Actual image
-```
 
 ## Benefit
 
@@ -401,7 +289,7 @@ Object storage provides a suitable way to store and manage large learning files 
 
 ---
 
-# 12. Cache
+# 10. Cache
 
 ## Definition
 
@@ -423,33 +311,6 @@ Cache
    +---- Cache Miss ---> Database
 ```
 
-## Why Use a Cache?
-
-Without caching:
-
-```text
-Many Learners
-     |
-     v
-Database
-     |
-     v
-Repeated Database Reads
-```
-
-With caching:
-
-```text
-Many Learners
-     |
-     v
-Cache
-     |
-     +---- Frequently requested data
-     |
-     v
-Database only when required
-```
 
 ## Benefit
 
@@ -464,25 +325,11 @@ The database remains the source of truth for persistent structured data.
 
 ---
 
-# 13. Infrastructure as Code
+# 11. Infrastructure as Code
 
 ## Definition
 
 Infrastructure as Code (IaC) is the practice of defining and managing infrastructure using code or configuration files instead of creating infrastructure manually.
-
-For example, infrastructure can be defined for:
-
-```text
-Network
-Application
-Database
-Load Balancer
-Autoscaling
-Security Configuration
-Monitoring
-Storage
-```
-
 Tools such as Terraform or cloud-native IaC technologies can be used.
 
 ## Benefits
@@ -512,7 +359,7 @@ The same infrastructure configuration can be used to reproduce environments cons
 
 ---
 
-# 14. Observability
+# 12. Observability
 
 ## Definition
 
@@ -593,40 +440,8 @@ Observability helps engineers:
 
 ---
 
-# 15. Monitoring vs Observability
 
-Monitoring mainly helps identify **what is happening**.
-
-Example:
-
-```text
-CPU usage > 90%
-```
-
-Observability helps engineers investigate **why it is happening**.
-
-Example:
-
-```text
-High response time
-       |
-       v
-Trace request
-       |
-       v
-Database query is slow
-       |
-       v
-Identify bottleneck
-```
-
-Therefore:
-
-> Monitoring tells us what is happening, while observability helps us understand why it is happening.
-
----
-
-# 16. FinOps and Cost Management
+# 13. FinOps and Cost Management
 
 ## Definition
 
@@ -669,56 +484,8 @@ Regularly identify and remove:
 
 Set spending budgets and alerts to identify unexpected increases in cloud costs.
 
-## Benefit
-
-FinOps helps the organization balance:
-
-```text
-Performance
-     +
-Reliability
-     +
-Cost
-```
-
-rather than simply trying to minimize spending.
-
 ---
 
-# 17. Reliability and Redundancy
-
-A single application server creates a single point of failure.
-
-### Less Reliable
-
-```text
-Users
-  |
-  v
-One Server
-  |
-  v
-Database
-```
-
-If the server fails, the application may become unavailable.
-
-### More Reliable
-
-```text
-              Load Balancer
-              /     |     \
-             v      v      v
-          App 1   App 2   App 3
-```
-
-If one application instance fails, other instances can continue serving users.
-
-Multiple application instances therefore improve availability and reduce dependence on a single instance.
-
-Container orchestration can also replace failed containers to maintain the desired application state.
-
----
 
 # 18. Complete Exam-Period Scenario
 
@@ -855,108 +622,6 @@ This avoids paying for unnecessary capacity.
 
 ---
 
-# 20. Cloud Foundations Concepts Demonstrated
-
-| Cloud Foundations Concept | Generic Implementation |
-|---|---|
-| Infrastructure as Code | Terraform / IaC tooling |
-| Containers | Container technology |
-| Container Orchestration | Kubernetes or managed container orchestration |
-| Container Compute | Cloud container compute |
-| Load Balancing | Managed load balancer |
-| Managed Database | Managed relational database |
-| Object Storage | Cloud object storage |
-| Caching | Managed cache |
-| Autoscaling | Application/container autoscaling |
-| Observability | Logs, metrics, and traces |
-| Cost Management | Budgets, alerts, usage monitoring, and FinOps |
-
-The exact service names can vary depending on the cloud provider. The architecture focuses on the underlying cloud concepts rather than a specific provider.
-
----
-
-# 21. Business Benefits
-
-The proposed solution supports the company's business goals in several ways.
-
-### Reliability
-
-Multiple application instances reduce dependence on a single server.
-
-### Scalability
-
-Autoscaling allows the platform to handle traffic increases during exams, course launches, and corporate training programs.
-
-### Operational Efficiency
-
-Managed services, containers, orchestration, and Infrastructure as Code reduce manual operational work.
-
-### Visibility
-
-Logs, metrics, and traces provide engineers with information needed to identify and troubleshoot problems.
-
-### Cost Management
-
-Autoscaling, right-sizing, budgets, and removal of unused resources help control cloud spending.
-
----
-
-# 22. What We Learned
-
-Through this project, we learned how different Cloud Foundations concepts work together to solve a real-world business problem.
-
-We learned:
-
-* Why cloud infrastructure needs to scale according to demand
-* How autoscaling helps handle changing workloads
-* How load balancing distributes traffic
-* How containers simplify application deployment
-* Why container orchestration is useful for managing multiple containers
-* How managed cloud services reduce operational overhead
-* How Infrastructure as Code provides consistent infrastructure
-* How logs, metrics, and traces support observability
-* How FinOps helps organizations manage cloud costs
-* How cloud architecture decisions should be connected to business requirements
-
-The main lesson was that cloud architecture is not just about selecting technologies. Each technology should be chosen based on the problem it solves and the business benefit it provides.
-
----
-
-# 23. Challenges Faced
-
-During the project, the main challenges included:
-
-### Understanding Cloud Concepts
-
-As beginners, understanding concepts such as autoscaling, containers, managed services, observability, and FinOps required connecting the theoretical definitions to real-world examples.
-
-### Selecting Appropriate Solutions
-
-There are multiple possible cloud solutions. The challenge was to select approaches that directly addressed the requirements of the case study instead of adding technologies unnecessarily.
-
-### Connecting Technology to Business Needs
-
-Another challenge was understanding that each technology should have a clear purpose.
-
-For example:
-
-```text
-Traffic spikes
-     |
-     v
-Autoscaling
-     |
-     v
-Scalability
-```
-
-rather than using a technology simply because it is commonly used in cloud environments.
-
-### Designing the Architecture
-
-Another challenge was organizing the different cloud components into an architecture where they work together to provide scalability, reliability, observability, and cost efficiency.
-
----
 
 # 24. Conclusion
 
@@ -995,77 +660,3 @@ Infrastructure as Code improves consistency and repeatability. Observability pro
 Together, these practices provide a **scalable, reliable, observable, operationally efficient, and cost-conscious foundation** for the future growth of the online learning platform.
 
 ---
-
-# 25. Final Architecture Stack
-
-```text
-                         Learners
-                            |
-                            v
-                     Load Balancer
-                            |
-                            v
-                  Container Platform
-                            |
-                            v
-              Container Orchestration
-                            |
-              +-------------+-------------+
-              |             |             |
-              v             v             v
-         Course        Assessment      Progress
-         Service         Service        Service
-              |             |             |
-              +-------------+-------------+
-                            |
-                 +----------+----------+
-                 |                     |
-                 v                     v
-              Cache          Managed Relational
-                               Database
-                                      |
-                                      v
-                              Structured Data
-
-                    Object Storage
-                         |
-              +----------+----------+
-              |          |          |
-            Videos     PDFs       Audio
-            Images   Materials
-
-                            |
-                            v
-                       Autoscaling
-                            |
-                            v
-                      Observability
-                  Logs + Metrics + Traces
-                            |
-                            v
-                    Infrastructure as Code
-                            |
-                            v
-                          FinOps
-```
-
-## Key Principle
-
-```text
-Changing Demand
-       |
-       v
-Scalable Infrastructure
-       |
-       +----> Reliability
-       |
-       +----> Performance
-       |
-       +----> Operational Efficiency
-       |
-       +----> Observability
-       |
-       +----> Cost Management
-```
-
-This architecture is **cloud-provider independent** and can be implemented using equivalent services from different cloud providers.
