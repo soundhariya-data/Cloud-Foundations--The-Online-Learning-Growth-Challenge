@@ -385,9 +385,23 @@ Logs record events that happen inside the system.
 Example:
 
 ```text
-User started assessment
-Assessment service received request
-Database request failed
+Successful action
+
+10:15:20 INFO Course Service: Student 101 opened Course 25
+
+→ Tells us when the student opened the course and that the request was successful.
+
+Performance problem
+
+10:50:30 WARN Assessment Service: Request took 5 seconds
+
+→ Tells us the Assessment Service was slow, helping identify performance issues.
+
+System error
+
+10:46:02 ERROR Assessment Service: Database connection failed
+
+→ Tells us where and what went wrong, helping the team diagnose the problem
 ```
 
 ## Metrics
