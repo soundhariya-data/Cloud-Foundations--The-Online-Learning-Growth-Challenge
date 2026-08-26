@@ -713,7 +713,7 @@ This protects the database and prevents one application instance from becoming o
 
 
 
-# 19. Mapping Problems to Solutions
+# 14. Mapping Problems to Solutions
 
 | Business Problem | Proposed Solution | Expected Benefit |
 |---|---|---|
@@ -732,33 +732,9 @@ This protects the database and prevents one application instance from becoming o
 ---
 
 
-# 24. Conclusion
+# 15. Conclusion
 
 The Online Learning Growth Challenge requires a cloud solution that can adapt to changing demand while maintaining a reliable learner experience and controlling operational costs.
-
-Our proposed approach combines:
-
-```text
-Load Balancing
-       +
-Containers
-       +
-Container Orchestration
-       +
-Autoscaling
-       +
-Managed Services
-       +
-Object Storage
-       +
-Caching
-       +
-Infrastructure as Code
-       +
-Observability
-       +
-FinOps
-```
 
 Autoscaling allows resources to increase during high-demand periods and decrease when demand falls. Load balancing and multiple application instances improve availability and distribute traffic. Containers and orchestration support consistent and scalable application deployment.
 
