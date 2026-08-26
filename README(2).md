@@ -63,7 +63,7 @@ The architecture therefore needs to support changing workloads without permanent
 
 
 # 3. Proposed Architecture
-
+![E-Leaning Platform Architecture](Cloud_arc.png)
 
 ---
 
